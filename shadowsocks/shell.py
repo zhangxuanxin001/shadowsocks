@@ -162,72 +162,73 @@ def get_config(is_local):
         v_count = 0
         for key, value in optlist:
             if key == '-p':
-                config['server_port'] = int(value)
+                config['server_port'] = int(value)  # 服务器端口
             elif key == '-k':
-                config['password'] = to_bytes(value)
+                config['password'] = to_bytes(value)    # 帐号密码
             elif key == '-l':
-                config['local_port'] = int(value)
+                config['local_port'] = int(value)   # 本地端口号
             elif key == '-s':
-                config['server'] = to_str(value)
+                config['server'] = to_str(value)    # 境外VPS的IP
             elif key == '-m':
-                config['method'] = to_str(value)
+                config['method'] = to_str(value)    # 加密模式
             elif key == '-b':
-                config['local_address'] = to_str(value)
+                config['local_address'] = to_str(value) # 本地IP地址
             elif key == '-v':
                 v_count += 1
                 # '-vv' turns on more verbose mode
-                config['verbose'] = v_count
+                config['verbose'] = v_count 
             elif key == '-t':
-                config['timeout'] = int(value)
+                config['timeout'] = int(value)  # 超时时间
             elif key == '--fast-open':
                 config['fast_open'] = True
             elif key == '--workers':
-                config['workers'] = int(value)
+                config['workers'] = int(value)  # 开启线程数
             elif key == '--manager-address':
-                config['manager_address'] = value
+                config['manager_address'] = value   
             elif key == '--user':
-                config['user'] = to_str(value)
+                config['user'] = to_str(value)  # 用户角色
             elif key == '--forbidden-ip':
                 config['forbidden_ip'] = to_str(value).split(',')
-            elif key in ('-h', '--help'):
+            elif key in ('-h', '--help'):   # 输出帮助信息文档
                 if is_local:
                     print_local_help()
                 else:
                     print_server_help()
                 sys.exit(0)
-            elif key == '--version':
+            elif key == '--version':    # 输出版本信息
                 print_shadowsocks()
                 sys.exit(0)
             elif key == '-d':
-                config['daemon'] = to_str(value)
+                config['daemon'] = to_str(value)    # 开启守护进程
             elif key == '--pid-file':
                 config['pid-file'] = to_str(value)
             elif key == '--log-file':
-                config['log-file'] = to_str(value)
+                config['log-file'] = to_str(value)  #log文件路径
             elif key == '-q':
                 v_count -= 1
-                config['verbose'] = v_count
+                config['verbose'] = v_count 
     except getopt.GetoptError as e:
         print(e, file=sys.stderr)
         print_help(is_local)
         sys.exit(2)
-
+    #  config 为None 时, 返回错误信息
     if not config:
         logging.error('config not specified')
         print_help(is_local)
         sys.exit(2)
 
-    config['password'] = to_bytes(config.get('password', b''))
-    config['method'] = to_str(config.get('method', 'aes-256-cfb'))
-    config['port_password'] = config.get('port_password', None)
-    config['timeout'] = int(config.get('timeout', 300))
+    config['password'] = to_bytes(config.get('password', b''))  
+    config['method'] = to_str(config.get('method', 'aes-256-cfb'))  # 加密模式,默认为aes-256-cfb
+    config['port_password'] = config.get('port_password', None) # 多用户配置
+    config['timeout'] = int(config.get('timeout', 300)) # 超时时间,默认为300秒
     config['fast_open'] = config.get('fast_open', False)
-    config['workers'] = config.get('workers', 1)
-    config['pid-file'] = config.get('pid-file', '/var/run/shadowsocks.pid')
-    config['log-file'] = config.get('log-file', '/var/log/shadowsocks.log')
-    config['verbose'] = config.get('verbose', False)
-    config['local_address'] = to_str(config.get('local_address', '127.0.0.1'))
-    config['local_port'] = config.get('local_port', 1080)
+    config['workers'] = config.get('workers', 1)    # 线程数,默认开启一个线程
+    config['pid-file'] = config.get('pid-file', '/var/run/shadowsocks.pid') # pid文件保存路径
+    config['log-file'] = config.get('log-file', '/var/log/shadowsocks.log') # log文件保存路径
+    config['verbose'] = config.get('verbose', False)    # 默认不开启冗余模式
+    config['local_address'] = to_str(config.get('local_address', '127.0.0.1'))  # 本地代理地址
+    config['local_port'] = config.get('local_port', 1080)   # 本地代理端口,程序与系统通信端口
+    # 如果时客户端配置,需要指明 境外VPS的IP地址
     if is_local:
         if config.get('server', None) is None:
             logging.error('server addr not specified')
@@ -243,7 +244,7 @@ def get_config(is_local):
         except Exception as e:
             logging.error(e)
             sys.exit(2)
-    config['server_port'] = config.get('server_port', 8388)
+    config['server_port'] = config.get('server_port', 8388) # 设置服务器端口,如果没有就采用默认值:8388
 
     logging.getLogger('').handlers = []
     logging.addLevelName(VERBOSE_LEVEL, 'VERBOSE')
@@ -261,12 +262,13 @@ def get_config(is_local):
     logging.basicConfig(level=level,
                         format='%(asctime)s %(levelname)-8s %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
-
-    check_config(config, is_local)
+    
+    check_config(config, is_local)  # 检查配置信息是否有效,有效就返回配置信息,无效就报错
 
     return config
 
 
+# 打印帮助信息 
 def print_help(is_local):
     if is_local:
         print_local_help()
@@ -396,7 +398,6 @@ def _decode_list(data):
             item = _decode_dict(item)
         rv.append(item)
     return rv
-
 
 
 # 将数据转换为字典
