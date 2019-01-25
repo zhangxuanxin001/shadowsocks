@@ -14,7 +14,7 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-
+# 读取命令行参数,检查配置
 from __future__ import absolute_import, division, print_function, \
     with_statement
 
@@ -31,7 +31,7 @@ VERBOSE_LEVEL = 5
 
 verbose = 0
 
-
+# 检查 python 版本
 def check_python():
     info = sys.version_info
     if info[0] == 2 and not info[1] >= 6:
@@ -44,7 +44,8 @@ def check_python():
         print('Python version not supported')
         sys.exit(1)
 
-
+        
+# 输出错误信息
 def print_exception(e):
     global verbose
     logging.error(e)
@@ -52,7 +53,8 @@ def print_exception(e):
         import traceback
         traceback.print_exc()
 
-
+        
+# 输出shadwsocks版本信息
 def print_shadowsocks():
     version = ''
     try:
@@ -63,6 +65,7 @@ def print_shadowsocks():
     print('Shadowsocks %s' % version)
 
 
+#  查找配置信息   
 def find_config():
     config_path = 'config.json'
     if os.path.exists(config_path):
@@ -72,7 +75,7 @@ def find_config():
         return config_path
     return None
 
-
+# 检查配置信息
 def check_config(config, is_local):
     if config.get('daemon', None) == 'stop':
         # no need to specify configuration for daemon stop
@@ -123,7 +126,7 @@ def check_config(config, is_local):
 
     encrypt.try_cipher(config['password'], config['method'])
 
-
+# 获取配置
 def get_config(is_local):
     global verbose
 
@@ -381,6 +384,7 @@ Online help: <https://github.com/shadowsocks/shadowsocks>
 ''')
 
 
+# 将 数据转换为列表
 def _decode_list(data):
     rv = []
     for item in data:
@@ -394,6 +398,8 @@ def _decode_list(data):
     return rv
 
 
+
+# 将数据转换为字典
 def _decode_dict(data):
     rv = {}
     for key, value in data.items():
@@ -407,6 +413,7 @@ def _decode_dict(data):
     return rv
 
 
+# 将 json 文件解析为字符串
 def parse_json_in_str(data):
     # parse json and convert everything from unicode to str
     return json.loads(data, object_hook=_decode_dict)
