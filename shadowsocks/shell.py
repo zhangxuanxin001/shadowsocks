@@ -297,8 +297,30 @@ General options:
   -v, -vv                verbose mode
   -q, -qq                quiet mode, only show warnings/errors
   --version              show version information
-
 Online help: <https://github.com/shadowsocks/shadowsocks>
+
+代理参数:
+  -c CONFIG              配置文件路径
+  -s SERVER_ADDR         服务器IP地址(也就是你境外服务器的IP地址)
+  -p SERVER_PORT         服务器端口号, 默认值为: 8388
+  -b LOCAL_ADDR          本地绑定IP地址, 默认值: 127.0.0.1
+  -l LOCAL_PORT          本地端口, 默认值: 1080
+  -k PASSWORD            设置访问密码
+  -m METHOD              加密模式, 默认值: aes-256-cfb
+  -o OBFS                obfs混淆, 默认值: http_simple
+  -t TIMEOUT             超时时间/秒, 默认值: 300
+  --fast-open            use TCP_FASTOPEN, requires Linux 3.7+
+
+一般参数:
+  -h, --help             显示此帮助消息并退出
+  -d start/stop/restart  守护进程模式:开启/停止/重启
+  --pid-file PID_FILE    pid file for daemon mode
+  --log-file LOG_FILE    log file for daemon mode
+  --user USER            用户角色
+  -v, -vv                冗余模式
+  -q, -qq                静默模式, 只显示警告和错误
+  --version              版本信息
+在线帮助: <https://github.com/shadowsocks/shadowsocks>
 ''')
 
 
@@ -331,6 +353,31 @@ General options:
   --version              show version information
 
 Online help: <https://github.com/shadowsocks/shadowsocks>
+代理参数:
+  -c CONFIG              设置配置文件路径
+  -s SERVER_ADDR         开启本地服务器地址, 默认值: 0.0.0.0
+  -p SERVER_PORT         服务器端口号, 默认值为: 8388
+  -b LOCAL_ADDR          本地绑定IP地址, 默认值: 127.0.0.1
+  -l LOCAL_PORT          本地端口, 默认值: 1080
+  -k PASSWORD            设置访问密码
+  -m METHOD              加密模式, 默认值: aes-256-cfb
+  -o OBFS                obfs混淆, 默认值: http_simple
+  -t TIMEOUT             超时时间/秒, 默认值: 300
+  --fast-open            use TCP_FASTOPEN, requires Linux 3.7+
+  --workers WORKERS      使用上线, 仅在Unix/Linux上有效
+  --forbidden-ip IPLIST  IP黑名单,以英文分号(;)隔开
+  --manager-address ADDR 可选服务器管理器UDP地址，参见wiki
+  
+一般参数:
+  -h, --help             显示此帮助消息并退出
+  -d start/stop/restart  守护进程模式:开启/停止/重启
+  --pid-file PID_FILE    pid file for daemon mode
+  --log-file LOG_FILE    log file for daemon mode
+  --user USER            用户角色
+  -v, -vv                冗余模式
+  -q, -qq                静默模式, 只显示警告和错误
+  --version              版本信息
+在线帮助: <https://github.com/shadowsocks/shadowsocks>
 ''')
 
 
