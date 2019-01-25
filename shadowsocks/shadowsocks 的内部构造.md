@@ -1,0 +1,12 @@
+- ```tcprelay.py```：核心部分，整个 ```SOCKS5``` 协议的实现都在这里。负责 TCP 代理的实现；
+- ```udprelay.py```：负责``` UDP``` 代理的实现；
+- ```asyncdns.py```：实现简单的异步`` DNS``` 查询；
+- ```eventloop.py```：封装三种常见的 IO 复用函数—```—epoll```、```kqueue``` 和 ```select```，提供统一的接口；
+- ```encrypt.py```：提供统一的加密解密接口；
+- ```crypto```：封装多种加密库的调用，包括 ```OpenSSL``` 和 ```libsodium```；
+- ```daemon.py```：用于实现守护进程；
+- ```shell.py```：读取命令行参数，检查配置；
+- ```common.py```：提供一些工具函数，比如：将 ```bytes``` 转换成 ```str```、解析 ```SOCKS5``` 请求；
+- ```lru_cache.py```：实现 ```LRU ```缓存；
+- ```local.py```：shadowsocks 客户端（即 ```sslocal``` 命令）的入口；
+- ```server.py```：shadowsocks 服务器（即 ```ssserver``` 命令）的入口。
