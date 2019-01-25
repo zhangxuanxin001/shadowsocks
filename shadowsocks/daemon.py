@@ -29,7 +29,9 @@ from shadowsocks import common, shell
 
 
 def daemon_exec(config):
+    
     if 'daemon' in config:
+        # 进程守护仅支持Unix
         if os.name != 'posix':
             raise Exception('daemon mode is only supported on Unix')
         command = config['daemon']
