@@ -38,31 +38,29 @@ MSG_FASTOPEN = 0x20000000
 CMD_CONNECT = 1
 CMD_BIND = 2
 CMD_UDP_ASSOCIATE = 3
+# 对于每个端口，有一个tcp relay,对于每个tcp relay
+# 对于每个连接，有一个tcp relay handler来处理
+# 对于每个handler，有两个socket,
+# - local 连接到client,
+# - remote 连接到远程主机（要访问的主机）
 
-# for each opening port, we have a TCP Relay
-
-# for each connection, we have a TCP Relay Handler to handle the connection
-
-# for each handler, we have 2 sockets:
-#    local:   connected to the client
-#    remote:  connected to remote server
-
-# for each handler, it could be at one of several stages:
+# 对于每个handler可以有如下几个阶段:
 
 # as sslocal:
-# stage 0 SOCKS hello received from local, send hello to local
-# stage 1 addr received from local, query DNS for remote
-# stage 2 UDP assoc
-# stage 3 DNS resolved, connect to remote
-# stage 4 still connecting, more data from local received
-# stage 5 remote connected, piping local and remote
+# - stage 0 接收从本地的method请求，并返回选择信息
+# - stage 1 从本地接收请求地址，并进行dns解析
+# - stage 2 udp相关
+# - stage 3 dns解析完毕，连接远程主机
+# - stage 4 连接中，并接收本地发送的数据
+# - stage 5 远程主机连接成功，发送数据
 
 # as ssserver:
-# stage 0 just jump to stage 1
-# stage 1 addr received from local, query DNS for remote
-# stage 3 DNS resolved, connect to remote
-# stage 4 still connecting, more data from local received
-# stage 5 remote connected, piping local and remote
+# - stage 0 直接跳到阶段1
+# - stage 1 从本地接收请求地址，并进行dns解析
+# - stage 2 udp相关
+# - stage 3 dns解析完毕，连接远程主机
+# - stage 4 连接中，并接收本地发送的数据
+# - stage 5 远程主机连接成功，发送数据
 
 STAGE_INIT = 0
 STAGE_ADDR = 1
@@ -72,22 +70,22 @@ STAGE_CONNECTING = 4
 STAGE_STREAM = 5
 STAGE_DESTROYED = -1
 
-# for each handler, we have 2 stream directions:
-#    upstream:    from client to server direction
-#                 read local and write to remote
-#    downstream:  from server to client direction
-#                 read remote and write to local
+# 对于每个handler，有两个流方向：
+# upstream：client->server,读本地，写入远程主机
+# downstream：server->client,读远程主机，写入本地
+
 
 STREAM_UP = 0
 STREAM_DOWN = 1
 
-# for each stream, it's waiting for reading, or writing, or both
+# 对于每个数据流，它都在等待读取或写入，或者两者都在等待
+
 WAIT_STATUS_INIT = 0
 WAIT_STATUS_READING = 1
 WAIT_STATUS_WRITING = 2
 WAIT_STATUS_READWRITING = WAIT_STATUS_READING | WAIT_STATUS_WRITING
 
-BUF_SIZE = 32 * 1024
+BUF_SIZE = 32 * 1024    # 设置缓冲大小
 
 
 class TCPRelayHandler(object):
@@ -97,7 +95,7 @@ class TCPRelayHandler(object):
         self._fd_to_handlers = fd_to_handlers
         self._loop = loop
         self._local_sock = local_sock
-        self._remote_sock = None
+        self._remote_sock = None    # 
         self._config = config
         self._dns_resolver = dns_resolver
 
@@ -118,6 +116,7 @@ class TCPRelayHandler(object):
             self._forbidden_iplist = config['forbidden_ip']
         else:
             self._forbidden_iplist = None
+        # local通道
         if is_local:
             self._chosen_server = self._get_a_server()
         fd_to_handlers[local_sock.fileno()] = self
