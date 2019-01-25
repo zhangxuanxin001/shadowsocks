@@ -29,15 +29,16 @@ from shadowsocks import shell, daemon, eventloop, tcprelay, udprelay, \
 
 
 def main():
+    # 检查python版本
     shell.check_python()
+   
+    config = shell.get_config(False)    # 获取配置文件,其中参数False 是标识符is_local的假值,表示要获取非local配置
 
-    config = shell.get_config(False)
-
-    daemon.daemon_exec(config)
-
+    daemon.daemon_exec(config)          # 检查配置是否要开启进程守护,仅在UNIX, Linux 上有效
+    # 多用户分配设置处理
     if config['port_password']:
         if config['password']:
-            logging.warn('warning: port_password should not be used with '
+            logging.warning('warning: port_password should not be used with '
                          'server_port and password. server_port and password '
                          'will be ignored')
     else:
@@ -56,40 +57,41 @@ def main():
 
     tcp_servers = []
     udp_servers = []
-    dns_resolver = asyncdns.DNSResolver()
-    port_password = config['port_password']
-    del config['port_password']
+    dns_resolver = asyncdns.DNSResolver()   # 创建DNS查询对象
+    port_password = config['port_password'] # 获取
+    del config['port_password']             # 删除config 字典中的"port_password"键
+    # 将多用户配置转换为单用户配置
     for port, password in port_password.items():
         a_config = config.copy()
-        a_config['server_port'] = int(port)
-        a_config['password'] = password
-        logging.info("starting server at %s:%d" %
-                     (a_config['server'], int(port)))
-        tcp_servers.append(tcprelay.TCPRelay(a_config, dns_resolver, False))
-        udp_servers.append(udprelay.UDPRelay(a_config, dns_resolver, False))
+        a_config['server_port'] = int(port) # 创建"server_port"键
+        a_config['password'] = password # 创建"password"键
+        logging.info("starting server at %s:%d" % (a_config['server'], int(port)))  # 记录服务开启
+        tcp_servers.append(tcprelay.TCPRelay(a_config, dns_resolver, False))    # 添加TCP查询对象,TCP代理实现
+        udp_servers.append(udprelay.UDPRelay(a_config, dns_resolver, False))    # 添加UDP查询对象
 
+    # 开启服务
     def run_server():
         def child_handler(signum, _):
-            logging.warn('received SIGQUIT, doing graceful shutting down..')
-            list(map(lambda s: s.close(next_tick=True),
-                     tcp_servers + udp_servers))
-        signal.signal(getattr(signal, 'SIGQUIT', signal.SIGTERM),
-                      child_handler)
+            logging.warning('received SIGQUIT, doing graceful shutting down..')
+            list(map(lambda s: s.close(next_tick=True), tcp_servers + udp_servers))
+        signal.signal(getattr(signal, 'SIGQUIT', signal.SIGTERM), child_handler)
 
         def int_handler(signum, _):
             sys.exit(1)
         signal.signal(signal.SIGINT, int_handler)
 
         try:
-            loop = eventloop.EventLoop()
-            dns_resolver.add_to_loop(loop)
+            loop = eventloop.EventLoop()    # 创建事件循环处理对象
+            dns_resolver.add_to_loop(loop)  # 将DNS绑定到事件循环
             list(map(lambda s: s.add_to_loop(loop), tcp_servers + udp_servers))
 
-            daemon.set_user(config.get('user', None))
-            loop.run()
+            daemon.set_user(config.get('user', None))   # 开启角色进程守护
+            
+            loop.run()  # 开启事件处理死循环
+            
         except Exception as e:
-            shell.print_exception(e)
-            sys.exit(1)
+            shell.print_exception(e)    # 异常处理
+            sys.exit(1) # 退出
 
     if int(config['workers']) > 1:
         if os.name == 'posix':
