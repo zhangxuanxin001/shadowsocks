@@ -53,8 +53,8 @@ EVENT_NAMES = {
 }
 
 # we check timeouts every TIMEOUT_PRECISION seconds
+# 设置轮巡周期
 TIMEOUT_PRECISION = 10
-
 
 class KqueueLoop(object):
 
@@ -108,16 +108,16 @@ class SelectLoop(object):
         self._r_list = set()
         self._w_list = set()
         self._x_list = set()
-
+        
+    # 轮巡事件
     def poll(self, timeout):
-        r, w, x = select.select(self._r_list, self._w_list, self._x_list,
-                                timeout)
+        r, w, x = select.select(self._r_list, self._w_list, self._x_list, timeout)
         results = defaultdict(lambda: POLL_NULL)
         for p in [(r, POLL_IN), (w, POLL_OUT), (x, POLL_ERR)]:
             for fd in p[0]:
                 results[fd] |= p[1]
         return results.items()
-
+    # 注册
     def register(self, fd, mode):
         if mode & POLL_IN:
             self._r_list.add(fd)
@@ -125,7 +125,7 @@ class SelectLoop(object):
             self._w_list.add(fd)
         if mode & POLL_ERR:
             self._x_list.add(fd)
-
+    # 移除注册
     def unregister(self, fd):
         if fd in self._r_list:
             self._r_list.remove(fd)
@@ -133,7 +133,7 @@ class SelectLoop(object):
             self._w_list.remove(fd)
         if fd in self._x_list:
             self._x_list.remove(fd)
-
+    # 修改
     def modify(self, fd, mode):
         self.unregister(fd)
         self.register(fd, mode)
@@ -142,7 +142,9 @@ class SelectLoop(object):
         pass
 
 
+# 事件循环
 class EventLoop(object):
+    # 构造函数,ss支持epoll、kqueue、select
     def __init__(self):
         if hasattr(select, 'epoll'):
             self._impl = select.epoll()
@@ -161,39 +163,41 @@ class EventLoop(object):
         self._periodic_callbacks = []
         self._stopping = False
         logging.debug('using event model: %s', model)
-
+    # 获取事件
     def poll(self, timeout=None):
         events = self._impl.poll(timeout)
         return [(self._fdmap[fd][0], fd, event) for fd, event in events]
-
+    # 添加时间
     def add(self, f, mode, handler):
         fd = f.fileno()
         self._fdmap[fd] = (f, handler)
         self._impl.register(fd, mode)
-
+    # 移除事件
     def remove(self, f):
         fd = f.fileno()
         del self._fdmap[fd]
         self._impl.unregister(fd)
-
+    # 添加周期
     def add_periodic(self, callback):
         self._periodic_callbacks.append(callback)
-
+    # 移除周期
     def remove_periodic(self, callback):
         self._periodic_callbacks.remove(callback)
-
+    # 修改
     def modify(self, f, mode):
         fd = f.fileno()
         self._impl.modify(fd, mode)
-
+    # 停止函数
     def stop(self):
         self._stopping = True
-
+    # 运行函数
     def run(self):
         events = []
+        # 没有停止信号,事件就一直运行
         while not self._stopping:
             asap = False
             try:
+                # epoll的系统调用，事件发生，poll调用返回。和select系统调用的关键区别
                 events = self.poll(TIMEOUT_PRECISION)
             except (OSError, IOError) as e:
                 if errno_from_exception(e) in (errno.EPIPE, errno.EINTR):
@@ -207,7 +211,7 @@ class EventLoop(object):
                     import traceback
                     traceback.print_exc()
                     continue
-
+            # 循环处理事件
             for sock, fd, event in events:
                 handler = self._fdmap.get(fd, None)
                 if handler is not None:
