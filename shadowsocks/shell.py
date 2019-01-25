@@ -75,6 +75,7 @@ def find_config():
         return config_path
     return None
 
+
 # 检查配置信息
 def check_config(config, is_local):
     if config.get('daemon', None) == 'stop':
